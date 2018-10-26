@@ -1,3 +1,5 @@
+import platform
+
 from requests import Session, exceptions
 
 from shinken.basemodule import BaseModule
@@ -6,14 +8,13 @@ from shinken.log import logger
 properties = {
     'daemons': ['broker'],
     'type': 'http',
-    'external': False,
-    'phases': ['running'],
+    'external': False
 }
 
 
 def get_instance(plugin):
     name = plugin.get_name()
-    logger.info("Get a Syslog broker for plugin %s" % (name))
+    logger.info("[alerta] Get a broker for plugin %s" % (name))
 
     # defaults
     endpoint = 'http://localhost:8080'
@@ -27,11 +28,11 @@ def get_instance(plugin):
     if hasattr(plugin, 'key'):
         key = plugin.key
 
-    instance = Syslog_broker(plugin, endpoint, key, environment=environment, customer=customer, debug=True)
+    instance = AlertaBroker(plugin, endpoint, key, environment=environment, customer=customer, debug=True)
     return instance
 
 
-class Syslog_broker(BaseModule):
+class AlertaBroker(BaseModule):
 
     def __init__(self, modconf, endpoint=None, key=None, environment=None, customer=None, debug=False):
 
@@ -51,21 +52,62 @@ class Syslog_broker(BaseModule):
 
         BaseModule.__init__(self, modconf)
 
-    def manage_log_brok(self, b):
+    def init(self):
+        logger.info("[alerta] Initialization...")
 
-        if self.debug:
-            print(b)
-        data = b.data
+    def manage_brok(self, brok):
 
-        payload = {
-            'foo': 'foo',
-            'rawData': data['log'].encode('UTF-8')
-        }
+        if brok.type in ['service_check_result', 'host_check_result', 'update_service_status', 'update_host_status']:
+            if self.debug:
+                logger.info('[alerta]: %s' % brok.data)
 
-        try:
-            response = self.session.post(self.endpoint, json=payload, headers=self.headers)
-        except exceptions.RequestException as e:
-            response = str(e)
+            data = brok.data
 
-        if self.debug:
-            print(response)
+            if brok.type in ['service_check_result', 'update_service_status']:
+                check_type = 'Service Check'
+            else:
+                check_type = 'Host Check'
+
+            state = data.get('state', None)
+
+            if state == 'CRITICAL':
+                severity = 'critical'
+            elif state == 'DOWN':
+                severity = 'major'
+            elif state in ['UP', 'OK']:
+                severity = 'ok'
+            elif state == 'PENDING':
+                severity = 'indeterminate'
+            else:
+                severity = 'warning'
+
+            payload = {
+                'resource': data['host_name'],
+                'event': data.get('service_description', check_type),
+                'environment': self.environment,
+                'severity': severity,
+                'service': ['Platform'],
+                'group': 'Shinken',
+                'value': '%s (%s)' % (data['state'], data['state_type']),
+                'text': data['long_output'] or data['output'],
+                'tags': [],
+                'attributes': {},
+                'origin': 'shinken/%s' % platform.uname()[1],
+                'type': brok.type,
+                'rawData': data,
+                'customer': self.customer
+            }
+
+            if data['problem_has_been_acknowledged']:
+                payload['status'] = 'ack'
+
+            try:
+                url = self.endpoint + '/alert'
+                response = self.session.post(url, json=payload, headers=self.headers)
+                if self.debug:
+                    logger.info('[alerta]: %s' % response.text)
+            except exceptions.RequestException as e:
+                logger.error(str(e))
+
+    def manage_signal(self, sig, frame):
+        logger.info("[alerta] Received signal: %s" % sig)

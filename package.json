@@ -1,0 +1,24 @@
+{
+  "name": "alerta",
+  "types": ["module"],
+  "version": "1.0.0",
+  "homepage": "https://github.com/alerta/shinken-mod-alerta",
+  "author": "Nick Satterly",
+  "description": "Forward alerts to Alerta",
+  "contributors": [
+  {
+    "name": "Nick Satterly",
+    "email": "nick.satterly@gmail.com"
+  }
+  ],
+  "repository": "https://github.com/alerta/shinken-mod-alerta",
+  "keywords": [
+  "module",
+  "arbiter",
+  "alerta"
+  ],
+  "dependencies": {
+      "shinken": ">=1.4"
+  },
+  "license": "MIT"
+}
