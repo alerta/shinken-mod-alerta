@@ -1,7 +1,7 @@
 {
   "name": "alerta",
   "types": ["module"],
-  "version": "1.0.1",
+  "version": "1.0.2",
   "homepage": "https://github.com/alerta/shinken-mod-alerta",
   "author": "Nick Satterly",
   "description": "Forward alerts to Alerta",

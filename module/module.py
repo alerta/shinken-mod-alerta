@@ -16,23 +16,12 @@ def get_instance(plugin):
     name = plugin.get_name()
     logger.info("[alerta] Get a broker for plugin %s" % (name))
 
-    # defaults
-    endpoint = 'http://localhost:8080'
-    key = None
-    environment = 'Production'
-    customer = None
-
     # Get configuration values, if any
-    if hasattr(plugin, 'endpoint'):
-        endpoint = plugin.endpoint
-    if hasattr(plugin, 'key'):
-        key = plugin.key
-    if hasattr(plugin, 'environment'):
-        environment = plugin.environment
-    if hasattr(plugin, 'customer'):
-        customer = plugin.customer
-    if hasattr(plugin, 'debug'):
-        debug = plugin.debug
+    endpoint = getattr(plugin, 'endpoint', 'http://localhost:8080')
+    key = getattr(plugin, 'key', None)
+    environment = getattr(plugin, 'environment', 'Production')
+    customer = getattr(plugin, 'customer', None)
+    debug = getattr(plugin, 'debug', False)
 
     instance = AlertaBroker(plugin, endpoint, key, environment=environment, customer=customer, debug=debug)
     return instance
@@ -41,6 +30,7 @@ def get_instance(plugin):
 class AlertaBroker(BaseModule):
 
     def __init__(self, modconf, endpoint=None, key=None, environment=None, customer=None, debug=False):
+        BaseModule.__init__(self, modconf)
 
         self.name = 'Alerta Module'
         self.endpoint = endpoint
@@ -56,7 +46,6 @@ class AlertaBroker(BaseModule):
 
         self.debug = debug
 
-        BaseModule.__init__(self, modconf)
 
     def init(self):
         logger.info("[alerta] Initialization...")

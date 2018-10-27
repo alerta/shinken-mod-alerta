@@ -68,12 +68,12 @@ define broker {
 Modify the defaults by updating `/etc/shinken/modules/alerta.cfg`:
 
 ```
-## Module:      Alerta
-## Loaded by:   Broker
-# Send all logs to Alerta
 define module {
     module_name     alerta
     module_type     http
+    endpoint        http://localhost:8080
+    environment     Production
+    debug           0
 }
 ```
 
