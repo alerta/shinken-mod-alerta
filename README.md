@@ -16,18 +16,17 @@ Installation
 
 To install Shinken follow the official online documentation.
 
-copy module.py to /var/lib/shinken/modules/alerta
+Then use the `shinken` CLI to install the published module:
 
+    $ shinken install alerta
 
 Configuration
 -------------
 
-/etc/shinken/modules/alerta.cfg
+Add `alerta` to the list of broker modules to use
+in `/etc/shinken/brokers/broker-master.cfg`:
 
-
-cat brokers/broker-master.cfg
-
-
+```
 define broker {
     broker_name     broker-master
     address         localhost
@@ -56,27 +55,45 @@ define broker {
     # Comma separated list of modules
     modules	webui2,alerta
 
+    # Enable https or not
+    use_ssl	          0
+    # enable certificate/hostname check, will avoid man in the middle attacks
+    hard_ssl_name_check   0
+
+    ## Advanced
+    realm   All
+}
+```
+
+Modify the defaults by updating `/etc/shinken/modules/alerta.cfg`:
+
+```
+## Module:      Alerta
+## Loaded by:   Broker
+# Send all logs to Alerta
+define module {
+    module_name     alerta
+    module_type     http
+}
+```
 
 Testing
 -------
 
-
+TBC
 
 Troubleshooting
 ---------------
 
+TBC
 
 References
 ----------
 
-http://forum.shinken-monitoring.org/
-Server Monitoring with Shinken on Ubuntu 16.04
-https://www.howtoforge.com/tutorial/server-monitoring-with-shinken-on-ubuntu-16-04/
-
-https://shinken.readthedocs.io/en/1.4.2/89_packages/the_broker_modules.html#the-broker-modules
+* [Server Monitoring with Shinken on Ubuntu 16.04](https://www.howtoforge.com/tutorial/server-monitoring-with-shinken-on-ubuntu-16-04/)
+* [Shinken Broker modules](https://shinken.readthedocs.io/en/1.4.2/89_packages/the_broker_modules.html#the-broker-modules)
 
 License
 -------
 
 Copyright (c) 2018 Nick Satterly. Available under the MIT License.
-

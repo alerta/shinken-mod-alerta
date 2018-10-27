@@ -27,8 +27,14 @@ def get_instance(plugin):
         endpoint = plugin.endpoint
     if hasattr(plugin, 'key'):
         key = plugin.key
+    if hasattr(plugin, 'environment'):
+        environment = plugin.environment
+    if hasattr(plugin, 'customer'):
+        customer = plugin.customer
+    if hasattr(plugin, 'debug'):
+        debug = plugin.debug
 
-    instance = AlertaBroker(plugin, endpoint, key, environment=environment, customer=customer, debug=True)
+    instance = AlertaBroker(plugin, endpoint, key, environment=environment, customer=customer, debug=debug)
     return instance
 
 
